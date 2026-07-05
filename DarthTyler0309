@@ -89,7 +89,7 @@ local function buildGUI()
     end)
 
     ----------------------------------------------------
-    -- RESET CHARACTER BUTTON
+    -- RESET CHARACTER BUTTON (WORKING)
     ----------------------------------------------------
     local resetBtn = Instance.new("TextButton")
     resetBtn.Parent = gui
@@ -103,7 +103,10 @@ local function buildGUI()
     makeDraggable(resetBtn)
 
     resetBtn.MouseButton1Click:Connect(function()
-        LocalPlayer:LoadCharacter()
+        local char = LocalPlayer.Character
+        if char then
+            char:BreakJoints() -- THIS WORKS
+        end
     end)
 
     ----------------------------------------------------
@@ -169,7 +172,6 @@ LocalPlayer.CharacterAdded:Connect(function()
     buildGUI()
 end)
 
--- Build immediately if already spawned
 if LocalPlayer.Character then
     buildGUI()
 end
