@@ -1,0 +1,223 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+
+local magnetOn = false
+local tpInsideOn = false
+local selectedPlayer = nil
+
+----------------------------------------------------
+-- FUNCTION: MAKE DRAGGABLE
+----------------------------------------------------
+local function makeDraggable(btn)
+    local dragging = false
+    local dragStart, startPos
+
+    btn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = btn.Position
+        end
+    end)
+
+    btn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            btn.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
+----------------------------------------------------
+-- FUNCTION: BUILD GUI (called on spawn)
+----------------------------------------------------
+local function buildGUI()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "MagnetGUI"
+    gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+    ----------------------------------------------------
+    -- ULTRA MAGNET BUTTON
+    ----------------------------------------------------
+    local magnetBtn = Instance.new("TextButton")
+    magnetBtn.Parent = gui
+    magnetBtn.Size = UDim2.new(0,200,0,50)
+    magnetBtn.Position = UDim2.new(0.1,0,0.3,0)
+    magnetBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    magnetBtn.TextColor3 = Color3.new(1,1,1)
+    magnetBtn.Text = "ULTRA Magnet: OFF"
+    magnetBtn.Font = Enum.Font.SourceSans
+    magnetBtn.TextSize = 24
+    makeDraggable(magnetBtn)
+
+    magnetBtn.MouseButton1Click:Connect(function()
+        magnetOn = not magnetOn
+        magnetBtn.Text = magnetOn and "ULTRA Magnet: ON" or "ULTRA Magnet: OFF"
+        magnetBtn.BackgroundColor3 = magnetOn and Color3.fromRGB(0,170,0) or Color3.fromRGB(60,60,60)
+    end)
+
+    ----------------------------------------------------
+    -- TP INSIDE BUTTON
+    ----------------------------------------------------
+    local tpBtn = Instance.new("TextButton")
+    tpBtn.Parent = gui
+    tpBtn.Size = UDim2.new(0,200,0,50)
+    tpBtn.Position = UDim2.new(0.1,0,0.4,0)
+    tpBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    tpBtn.TextColor3 = Color3.new(1,1,1)
+    tpBtn.Text = "TP Inside: OFF"
+    tpBtn.Font = Enum.Font.SourceSans
+    tpBtn.TextSize = 24
+    makeDraggable(tpBtn)
+
+    tpBtn.MouseButton1Click:Connect(function()
+        tpInsideOn = not tpInsideOn
+        tpBtn.Text = tpInsideOn and "TP Inside: ON" or "TP Inside: OFF"
+        tpBtn.BackgroundColor3 = tpInsideOn and Color3.fromRGB(0,170,0) or Color3.fromRGB(60,60,60)
+    end)
+
+    ----------------------------------------------------
+    -- RESET CHARACTER BUTTON
+    ----------------------------------------------------
+    local resetBtn = Instance.new("TextButton")
+    resetBtn.Parent = gui
+    resetBtn.Size = UDim2.new(0,200,0,50)
+    resetBtn.Position = UDim2.new(0.1,0,0.5,0)
+    resetBtn.BackgroundColor3 = Color3.fromRGB(200,50,50)
+    resetBtn.TextColor3 = Color3.new(1,1,1)
+    resetBtn.Text = "RESET CHARACTER"
+    resetBtn.Font = Enum.Font.SourceSans
+    resetBtn.TextSize = 24
+    makeDraggable(resetBtn)
+
+    resetBtn.MouseButton1Click:Connect(function()
+        LocalPlayer:LoadCharacter()
+    end)
+
+    ----------------------------------------------------
+    -- PLAYER LIST FRAME
+    ----------------------------------------------------
+    local listFrame = Instance.new("Frame")
+    listFrame.Parent = gui
+    listFrame.Size = UDim2.new(0,200,0,300)
+    listFrame.Position = UDim2.new(0.1,0,0.65,0)
+    listFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    makeDraggable(listFrame)
+
+    local listTitle = Instance.new("TextLabel")
+    listTitle.Parent = listFrame
+    listTitle.Size = UDim2.new(1,0,0,30)
+    listTitle.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    listTitle.TextColor3 = Color3.new(1,1,1)
+    listTitle.Text = "Select Player"
+    listTitle.Font = Enum.Font.SourceSans
+    listTitle.TextSize = 20
+
+    ----------------------------------------------------
+    -- POPULATE PLAYER LIST
+    ----------------------------------------------------
+    local function refreshList()
+        for _, child in ipairs(listFrame:GetChildren()) do
+            if child:IsA("TextButton") then child:Destroy() end
+        end
+
+        local y = 35
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer then
+                local btn = Instance.new("TextButton")
+                btn.Parent = listFrame
+                btn.Size = UDim2.new(1,0,0,30)
+                btn.Position = UDim2.new(0,0,0,y)
+                btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+                btn.TextColor3 = Color3.new(1,1,1)
+                btn.Text = plr.Name
+                btn.Font = Enum.Font.SourceSans
+                btn.TextSize = 20
+
+                btn.MouseButton1Click:Connect(function()
+                    selectedPlayer = plr
+                    listTitle.Text = "Selected: " .. plr.Name
+                end)
+
+                y = y + 32
+            end
+        end
+    end
+
+    refreshList()
+    Players.PlayerAdded:Connect(refreshList)
+    Players.PlayerRemoving:Connect(refreshList)
+end
+
+----------------------------------------------------
+-- BUILD GUI ON SPAWN
+----------------------------------------------------
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(0.2)
+    buildGUI()
+end)
+
+-- Build immediately if already spawned
+if LocalPlayer.Character then
+    buildGUI()
+end
+
+----------------------------------------------------
+-- ULTRA MAGNET LOOP
+----------------------------------------------------
+task.spawn(function()
+    while true do
+        task.wait(0)
+
+        if magnetOn and selectedPlayer then
+            local char = LocalPlayer.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if not hrp then continue end
+
+            local targetPos = hrp.Position + Vector3.new(0,5,0)
+
+            local pChar = selectedPlayer.Character
+            local pHRP = pChar and pChar:FindFirstChild("HumanoidRootPart")
+
+            if pHRP then
+                local direction = (targetPos - pHRP.Position)
+                local normalized = direction.Unit
+                pHRP.AssemblyLinearVelocity = normalized * 300
+            end
+        end
+    end
+end)
+
+----------------------------------------------------
+-- TP INSIDE LOOP
+----------------------------------------------------
+task.spawn(function()
+    while true do
+        task.wait(0.05)
+
+        if tpInsideOn and selectedPlayer then
+            local char = LocalPlayer.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if not hrp then continue end
+
+            local pChar = selectedPlayer.Character
+            local pHRP = pChar and pChar:FindFirstChild("HumanoidRootPart")
+
+            if pHRP then
+                hrp.CFrame = pHRP.CFrame
+            end
+        end
+    end
+end)
