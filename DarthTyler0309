@@ -196,7 +196,7 @@ task.spawn(function()
             if pHRP then
                 local direction = (targetPos - pHRP.Position)
                 local normalized = direction.Unit
-                pHRP.AssemblyLinearVelocity = normalized * 300
+                pHRP.AssemblyLinearVelocity = normalized * 999999999999999999999999
             end
         end
     end
@@ -207,7 +207,7 @@ end)
 ----------------------------------------------------
 task.spawn(function()
     while true do
-        task.wait(0.05)
+        task.wait(0)
 
         if tpInsideOn and selectedPlayer then
             local char = LocalPlayer.Character
