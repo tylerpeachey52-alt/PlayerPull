@@ -6,9 +6,6 @@ local magnetOn = false
 local tpInsideOn = false
 local selectedPlayer = nil
 
-----------------------------------------------------
--- FUNCTION: MAKE DRAGGABLE
-----------------------------------------------------
 local function makeDraggable(btn)
     local dragging = false
     local dragStart, startPos
@@ -40,17 +37,12 @@ local function makeDraggable(btn)
     end)
 end
 
-----------------------------------------------------
--- FUNCTION: BUILD GUI (called on spawn)
-----------------------------------------------------
 local function buildGUI()
     local gui = Instance.new("ScreenGui")
     gui.Name = "MagnetGUI"
     gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-    ----------------------------------------------------
     -- ULTRA MAGNET BUTTON
-    ----------------------------------------------------
     local magnetBtn = Instance.new("TextButton")
     magnetBtn.Parent = gui
     magnetBtn.Size = UDim2.new(0,200,0,50)
@@ -68,9 +60,7 @@ local function buildGUI()
         magnetBtn.BackgroundColor3 = magnetOn and Color3.fromRGB(0,170,0) or Color3.fromRGB(60,60,60)
     end)
 
-    ----------------------------------------------------
     -- TP INSIDE BUTTON
-    ----------------------------------------------------
     local tpBtn = Instance.new("TextButton")
     tpBtn.Parent = gui
     tpBtn.Size = UDim2.new(0,200,0,50)
@@ -88,9 +78,7 @@ local function buildGUI()
         tpBtn.BackgroundColor3 = tpInsideOn and Color3.fromRGB(0,170,0) or Color3.fromRGB(60,60,60)
     end)
 
-    ----------------------------------------------------
-    -- RESET CHARACTER BUTTON (WORKING)
-    ----------------------------------------------------
+    -- RESET CHARACTER BUTTON (fixed)
     local resetBtn = Instance.new("TextButton")
     resetBtn.Parent = gui
     resetBtn.Size = UDim2.new(0,200,0,50)
@@ -103,15 +91,11 @@ local function buildGUI()
     makeDraggable(resetBtn)
 
     resetBtn.MouseButton1Click:Connect(function()
-        local char = LocalPlayer.Character
-        if char then
-            char:BreakJoints() -- THIS WORKS
-        end
+        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        char:BreakJoints()
     end)
 
-    ----------------------------------------------------
     -- PLAYER LIST FRAME
-    ----------------------------------------------------
     local listFrame = Instance.new("Frame")
     listFrame.Parent = gui
     listFrame.Size = UDim2.new(0,200,0,300)
@@ -128,9 +112,6 @@ local function buildGUI()
     listTitle.Font = Enum.Font.SourceSans
     listTitle.TextSize = 20
 
-    ----------------------------------------------------
-    -- POPULATE PLAYER LIST
-    ----------------------------------------------------
     local function refreshList()
         for _, child in ipairs(listFrame:GetChildren()) do
             if child:IsA("TextButton") then child:Destroy() end
@@ -164,9 +145,6 @@ local function buildGUI()
     Players.PlayerRemoving:Connect(refreshList)
 end
 
-----------------------------------------------------
--- BUILD GUI ON SPAWN
-----------------------------------------------------
 LocalPlayer.CharacterAdded:Connect(function()
     task.wait(0.2)
     buildGUI()
@@ -176,9 +154,6 @@ if LocalPlayer.Character then
     buildGUI()
 end
 
-----------------------------------------------------
--- ULTRA MAGNET LOOP
-----------------------------------------------------
 task.spawn(function()
     while true do
         task.wait(0)
@@ -196,18 +171,15 @@ task.spawn(function()
             if pHRP then
                 local direction = (targetPos - pHRP.Position)
                 local normalized = direction.Unit
-                pHRP.AssemblyLinearVelocity = normalized * 999999999999999999999999
+                pHRP.AssemblyLinearVelocity = normalized * 300
             end
         end
     end
 end)
 
-----------------------------------------------------
--- TP INSIDE LOOP
-----------------------------------------------------
 task.spawn(function()
     while true do
-        task.wait(0)
+        task.wait(0.05)
 
         if tpInsideOn and selectedPlayer then
             local char = LocalPlayer.Character
